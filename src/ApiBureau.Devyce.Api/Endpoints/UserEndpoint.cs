@@ -1,4 +1,4 @@
-﻿namespace ApiBureau.Devyce.Api.Endpoints;
+namespace ApiBureau.Devyce.Api.Endpoints;
 
 /// <summary>
 /// Provides operations related to users within an organization.
@@ -14,12 +14,10 @@ public class UserEndpoint : BaseEndpoint
     /// <summary>
     /// Retrieves all users for a specific organization.
     /// </summary>
-    public async Task<List<UserDto>?> GetUsersAsync(
-        string organizationId,
-        CancellationToken cancellationToken = default)
+    public async Task<List<UserDto>> GetAsync(CancellationToken cancellationToken)
     {
         return await HttpClient.GetAsync<List<UserDto>>(
-            $"/Organizations/{organizationId}/Users",
+            $"/Users",
             cancellationToken) ?? [];
     }
 }

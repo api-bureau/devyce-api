@@ -19,7 +19,7 @@ public class CallEndpoint : BaseEndpoint
     /// Retrieves calls for a specific organization with pagination support.
     /// </summary>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
-    public async Task<List<CallDto>> GetCallsAsync(CallQuery callQuery,
+    public async Task<List<CallDto>> GetAsync(CallQuery callQuery,
         CancellationToken cancellationToken = default)
     {
         var queryParams = QueryBuilder.BuildCallQuery(callQuery);

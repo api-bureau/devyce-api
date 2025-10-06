@@ -1,4 +1,4 @@
-﻿namespace ApiBureau.Devyce.Api.Dtos;
+namespace ApiBureau.Devyce.Api.Dtos;
 
 public class CallDto
 {
@@ -15,4 +15,15 @@ public class CallDto
     public string? PlatformLink { get; set; }
     public string? CallNotes { get; set; }
     public string? CallTag { get; set; }
+
+    public int GetNumericCrmId()
+    {
+        //if (Contact is null) return 0;
+
+        //_ = int.TryParse(Contact.CrmObjectInstanceId, out var crmId);
+
+        int crmId = 0;
+
+        return crmId;
+    }
 }

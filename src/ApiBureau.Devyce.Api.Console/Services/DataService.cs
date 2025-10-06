@@ -18,10 +18,14 @@ public class DataService
 
     public async Task RunAsync()
     {
-        var callQuery = new CallQuery(DateTime.Now, DateTime.Now.AddDays(-5));
+        var callQuery = new CallQuery(DateTime.Now.AddDays(-1), DateTime.Now);
 
-        var result = await _client.Calls.GetCallsAsync(callQuery);
+        var result = await _client.Calls.GetAsync(callQuery);
 
         _logger.LogInformation(JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+
+        var users = await _client.Users.GetAsync(default);
+
+        _logger.LogInformation(JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true }));
     }
 }

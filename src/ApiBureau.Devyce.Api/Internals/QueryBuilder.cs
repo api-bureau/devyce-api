@@ -34,6 +34,6 @@ internal static class QueryBuilder
             queryParams["continuationToken"] = query.ContinuationToken;
         }
 
-        return QueryHelpers.AddQueryString($"/Organizations/{query.OrganizationId}/Calls", queryParams);
+        return QueryHelpers.AddQueryString($"/Calls", queryParams);
     }
 }

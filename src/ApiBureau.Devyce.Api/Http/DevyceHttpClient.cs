@@ -16,7 +16,7 @@ namespace ApiBureau.Devyce.Api.Http;
 /// </remarks>
 public class DevyceHttpClient
 {
-    private const string ApiUrlPrefix = "/api";
+    private const string ApiUrlPrefix = "/Organizations";
 
     private static class KnownHeaderNames
     {
@@ -81,7 +81,7 @@ public class DevyceHttpClient
     {
         try
         {
-            var relative = Combine(ApiUrlPrefix, url);
+            var relative = Combine(ApiUrlPrefix + $"/{_settings.OrganizationId}", url);
 
             // Fast path for no headers: use convenience extension
             if (headers == null || headers.Count == 0)

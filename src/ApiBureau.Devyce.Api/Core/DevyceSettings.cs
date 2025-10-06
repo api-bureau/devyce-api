@@ -23,4 +23,10 @@ public class DevyceSettings
     /// </summary>
     [Required(ErrorMessage = "ApiKey is required.")]
     public required string ApiKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets the unique identifier for the organization.
+    /// </summary>
+    [Required(ErrorMessage = "OrganizationId is required.")]
+    public required string OrganizationId { get; set; }
 }

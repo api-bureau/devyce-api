@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Polly;
-using System.Net.Http.Headers;
 
 namespace ApiBureau.Devyce.Api.Extensions;
 
@@ -29,7 +28,8 @@ public static class ServiceExtensions
             {
                 var settings = sp.GetRequiredService<IOptions<DevyceSettings>>().Value;
                 client.BaseAddress = new Uri(settings.BaseUrl);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("X-API-Key", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{settings.ApiKey}:")));
+                //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("X-API-Key", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{settings.ApiKey}:")));
+                client.DefaultRequestHeaders.Add("X-API-Key", settings.ApiKey);
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("ApiBureau.Devyce.Api/1.0");
             })
             .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(20)))

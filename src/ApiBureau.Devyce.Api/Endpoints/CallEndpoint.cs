@@ -1,7 +1,3 @@
-using ApiBureau.Devyce.Api.Internals;
-using ApiBureau.Devyce.Api.Queries;
-using ApiBureau.Devyce.Api.Responses;
-
 namespace ApiBureau.Devyce.Api.Endpoints;
 
 /// <summary>

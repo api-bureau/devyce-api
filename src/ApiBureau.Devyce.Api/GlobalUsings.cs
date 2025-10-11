@@ -3,4 +3,7 @@ global using ApiBureau.Devyce.Api.Dtos;
 global using ApiBureau.Devyce.Api.Endpoints;
 global using ApiBureau.Devyce.Api.Http;
 global using ApiBureau.Devyce.Api.Interfaces;
+global using ApiBureau.Devyce.Api.Internals;
+global using ApiBureau.Devyce.Api.Queries;
+global using ApiBureau.Devyce.Api.Responses;
 global using Microsoft.Extensions.Configuration;

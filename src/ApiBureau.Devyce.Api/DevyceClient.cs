@@ -12,6 +12,8 @@ public class DevyceClient : IDevyceClient
     public ContactEndpoint Contacts { get; }
     public UserEndpoint Users { get; }
 
+    public TranscriptEndpoint Transcripts { get; }
+
     /// <summary>
     /// Creates a new <see cref="DevyceClient"/> instance.
     /// </summary>
@@ -21,5 +23,6 @@ public class DevyceClient : IDevyceClient
         Calls = new CallEndpoint(apiConnection);
         Contacts = new ContactEndpoint(apiConnection);
         Users = new UserEndpoint(apiConnection);
+        Transcripts = new TranscriptEndpoint(apiConnection);
     }
 }

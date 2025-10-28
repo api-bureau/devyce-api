@@ -19,4 +19,9 @@ public interface IDevyceClient
     /// Gets the endpoint for managing contact information.
     /// </summary>
     ContactEndpoint Contacts { get; }
+
+    /// <summary>
+    /// Gets the endpoint used to access call transcripts.
+    /// </summary>
+    TranscriptEndpoint Transcripts { get; }
 }

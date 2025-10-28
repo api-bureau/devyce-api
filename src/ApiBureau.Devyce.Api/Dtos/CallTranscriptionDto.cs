@@ -1,7 +1,7 @@
-﻿namespace ApiBureau.Devyce.Api.Dtos;
+namespace ApiBureau.Devyce.Api.Dtos;
 
 public class CallTranscriptionDto
 {
-    public string Id { get; set; } = null!;
-    public string Transcript { get; set; } = null!;
+    public required string Id { get; set; }
+    public string? Transcript { get; set; }
 }

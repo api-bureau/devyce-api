@@ -9,6 +9,7 @@ public class DataService
 {
     private readonly IDevyceClient _client;
     private readonly ILogger<DataService> _logger;
+    private readonly JsonSerializerOptions _indentedJsonOptions = new() { WriteIndented = true };
 
     public DataService(IDevyceClient client, ILogger<DataService> logger)
     {
@@ -22,10 +23,16 @@ public class DataService
 
         var result = await _client.Calls.GetAsync(callQuery);
 
-        _logger.LogInformation(JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+        _logger.LogInformation(JsonSerializer.Serialize(result, _indentedJsonOptions));
 
         var users = await _client.Users.GetAsync(default);
 
-        _logger.LogInformation(JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true }));
+        _logger.LogInformation(JsonSerializer.Serialize(users, _indentedJsonOptions));
+
+        // Transcript test, you might need to request additional permission to access this endpoint
+
+        //var transcript = await _client.Transcripts.GetAsync("", default);
+
+        //_logger.LogInformation(JsonSerializer.Serialize(transcript, _indentedJsonOptions));
     }
 }

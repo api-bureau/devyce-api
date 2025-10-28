@@ -16,6 +16,17 @@ public class TranscriptEndpoint : BaseEndpoint
     /// </summary>
     /// <param name="callId">The call identifier.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
+    /// <returns>The call transcription if available, or null if not found or unavailable.</returns>
     public async Task<CallTranscriptionDto?> GetAsync(string callId, CancellationToken cancellationToken)
-        => await HttpClient.GetAsync<CallTranscriptionDto>($"/CallTranscriptions/{callId}", cancellationToken);
+    {
+        try
+        {
+            return await HttpClient.GetAsync<CallTranscriptionDto>($"/CallTranscriptions/{callId}", cancellationToken);
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Data.Contains("StatusCode") && ex.Data["StatusCode"]?.ToString() == "404")
+        {
+            // Transcript not available - return null instead of throwing
+            return null;
+        }
+    }
 }

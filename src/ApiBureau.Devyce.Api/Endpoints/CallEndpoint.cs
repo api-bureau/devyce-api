@@ -25,20 +25,4 @@ public class CallEndpoint : BaseEndpoint
 
         return response?.Items ?? [];
     }
-
-    /// <summary>
-    /// Retrieves the transcription for a specific call.
-    /// </summary>
-    /// <param name="organizationId">The organization identifier.</param>
-    /// <param name="callId">The call identifier.</param>
-    /// <param name="cancellationToken">A token to observe for cancellation.</param>
-    public async Task<CallTranscriptionDto?> GetCallTranscriptionAsync(
-        string organizationId,
-        string callId,
-        CancellationToken cancellationToken = default)
-    {
-        return await HttpClient.GetAsync<CallTranscriptionDto>(
-            $"/Organizations/{organizationId}/CallTranscriptions/{callId}",
-            cancellationToken);
-    }
 }

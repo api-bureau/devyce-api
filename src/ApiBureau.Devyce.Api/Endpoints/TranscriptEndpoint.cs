@@ -12,8 +12,10 @@ public class TranscriptEndpoint : BaseEndpoint
     public TranscriptEndpoint(DevyceHttpClient httpClient) : base(httpClient) { }
 
     /// <summary>
-    /// Retrieves the transcription for a specific call by its Id.
+    /// Retrieves the transcription for a specific call.
     /// </summary>
+    /// <param name="callId">The call identifier.</param>
+    /// <param name="cancellationToken">A token to observe for cancellation.</param>
     public async Task<CallTranscriptionDto?> GetAsync(string callId, CancellationToken cancellationToken)
         => await HttpClient.GetAsync<CallTranscriptionDto>($"/CallTranscriptions/{callId}", cancellationToken);
 }

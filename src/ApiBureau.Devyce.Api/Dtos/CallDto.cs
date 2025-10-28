@@ -5,6 +5,7 @@ public class CallDto
     public string Id { get; set; } = null!;
     public string CallerId { get; set; } = null!;
     public string CalledNumber { get; set; } = null!;
+    public string? OriginatingNumber { get; set; }
     public string Direction { get; set; } = null!;
     public DateTime StartTimeUtc { get; set; }
     public DateTime EndTimeUtc { get; set; }

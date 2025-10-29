@@ -20,7 +20,7 @@ public class CrmSyncDetailsEndpoint : BaseEndpoint
     {
         try
         {
-            return await HttpClient.GetAsync<IList<CrmSyncDetailsDto>>($"/Calls/{callId}/SyncDetails", cancellationToken) ?? new List<CrmSyncDetailsDto>();
+            return await HttpClient.GetAsync<IList<CrmSyncDetailsDto>>($"/Calls/{callId}/SyncDetails", cancellationToken) ?? [];
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Data.Contains("StatusCode") && ex.Data["StatusCode"]?.ToString() == "404")
         {

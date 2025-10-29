@@ -29,6 +29,12 @@ public class DataService
 
         _logger.LogInformation(JsonSerializer.Serialize(users, _indentedJsonOptions));
 
+        foreach (var callDto in result)
+        {
+            var sync = await _client.CrmSyncDetails.GetAsync(callDto.Id);
+            _logger.LogInformation(callDto.Id + ":" + JsonSerializer.Serialize(sync, _indentedJsonOptions));
+        }
+
         // Transcript test, you might need to request additional permission to access this endpoint
 
         //var transcript = await _client.Transcripts.GetAsync("", default);

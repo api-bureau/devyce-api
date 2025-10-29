@@ -14,6 +14,8 @@ public class DevyceClient : IDevyceClient
 
     public TranscriptEndpoint Transcripts { get; }
 
+    public CrmSyncDetailsEndpoint CrmSyncDetails { get; }
+
     /// <summary>
     /// Creates a new <see cref="DevyceClient"/> instance.
     /// </summary>
@@ -24,5 +26,6 @@ public class DevyceClient : IDevyceClient
         Contacts = new ContactEndpoint(apiConnection);
         Users = new UserEndpoint(apiConnection);
         Transcripts = new TranscriptEndpoint(apiConnection);
+        CrmSyncDetails = new CrmSyncDetailsEndpoint(apiConnection);
     }
 }

@@ -24,4 +24,9 @@ public interface IDevyceClient
     /// Gets the endpoint used to access call transcripts.
     /// </summary>
     TranscriptEndpoint Transcripts { get; }
+
+    /// <summary>
+    /// Gets the endpoint for CRM synchronization details.
+    /// </summary>
+    CrmSyncDetailsEndpoint CrmSyncDetails { get; }
 }

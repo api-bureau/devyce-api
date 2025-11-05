@@ -24,8 +24,7 @@ public class CrmSyncDetailsEndpoint : BaseEndpoint
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Data.Contains("StatusCode") && ex.Data["StatusCode"]?.ToString() == "404")
         {
-            return new List<CrmSyncDetailsDto>();
+            return [];
         }
     }
 }
-

@@ -20,8 +20,7 @@ public class CallEndpoint : BaseEndpoint
     {
         var queryParams = QueryBuilder.BuildCallQuery(callQuery);
 
-        var response = await HttpClient.GetAsync<CallResponse>(queryParams,
-            cancellationToken);
+        var response = await HttpClient.GetAsync<CallResponse>(queryParams, cancellationToken);
 
         return response?.Items ?? [];
     }

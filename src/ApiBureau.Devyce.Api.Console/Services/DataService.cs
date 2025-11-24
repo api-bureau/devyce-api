@@ -75,7 +75,7 @@ public class DataService
 
         foreach (var call in calls)
         {
-            _logger.LogInformation("Start time: {start}, duration: {duration}, caller: {callerId}, called: {calledNumer}", call.StartTimeUtc, call.Duration, call.CallerId, call.CalledNumber);
+            _logger.LogInformation("Start time: {start}, duration: {duration}, caller: {callerNumber}, called: {calledNumber}", call.StartTimeUtc, call.Duration, call.OriginatingNumber, call.CalledNumber);
         }
 
         _logger.LogInformation("Total calls: {count}", calls.Count);

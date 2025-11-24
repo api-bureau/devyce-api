@@ -18,7 +18,7 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
     {
         var exportPathArgument = CreatePathArgument();
         var usersCommand = CreateUsersCommand();
-        var callsCommand = CreateGenerateCommand(exportPathArgument);
+        var callsCommand = CreateCallsCommand(exportPathArgument);
 
         return new RootCommand("Devyce API examples")
         {
@@ -38,24 +38,40 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
 
     private Command CreateUsersCommand()
     {
-        var scanCommand = new Command("users", "Fetches and lists all Devyce users");
+        var userCommand = new Command("users", "Fetches and lists all Devyce users");
 
-        scanCommand.SetAction(async (parseResult, cancellationToken) =>
+        var jsonOption = new Option<bool>("--json", "-j")
+        {
+            Description = "Output users as JSON format"
+        };
+
+        userCommand.Options.Add(jsonOption);
+
+        userCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             using var scope = serviceProvider.CreateScope();
             var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
 
-            await dataService.FetchAndLogUsersAsync();
+            var useJson = parseResult.GetValue(jsonOption);
+
+            if (useJson)
+            {
+                await dataService.FetchUsersAsJsonAsync();
+            }
+            else
+            {
+                await dataService.FetchAndLogUsersAsync();
+            }
         });
 
-        return scanCommand;
+        return userCommand;
     }
 
-    private Command CreateGenerateCommand(Argument<DirectoryInfo> pathArgument)
+    private Command CreateCallsCommand(Argument<DirectoryInfo> pathArgument)
     {
-        var generateCommand = new Command("generate", "Generates the metadata JSON manifest.");
-        generateCommand.Arguments.Add(pathArgument);
-        generateCommand.SetAction(async (parseResult, cancellationToken) =>
+        var callsCommand = new Command("generate", "Generates the metadata JSON manifest.");
+        callsCommand.Arguments.Add(pathArgument);
+        callsCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             using var scope = serviceProvider.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<DataService>();
@@ -64,6 +80,6 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
             await handler.RunAsync();
         });
 
-        return generateCommand;
+        return callsCommand;
     }
 }

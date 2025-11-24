@@ -16,12 +16,11 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
     /// <returns>Configured root command ready for parsing.</returns>
     public RootCommand CreateRootCommand()
     {
-        var exportPathArgument = CreatePathArgument();
         var usersCommand = CreateUsersCommand();
-        var callsCommand = CreateCallsCommand(exportPathArgument);
+        var callsCommand = CreateCallsCommand();
         var crmDetailsCommand = CreateCrmDetailsCommand();
 
-        return new RootCommand("Devyce API examples")
+        return new RootCommand("Devyce API Console - Interact with Devyce API to manage users, calls, and CRM data")
         {
             usersCommand,
             callsCommand,
@@ -29,125 +28,89 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
         };
     }
 
-    private static Argument<DirectoryInfo> CreatePathArgument()
-    {
-        return new Argument<DirectoryInfo>("export-path")
-        {
-            Description = "The export path where the items will be exported",
-            DefaultValueFactory = _ => new DirectoryInfo(Path.Combine("export", "data"))
-        };
-    }
-
     private Command CreateUsersCommand()
     {
-        var userCommand = new Command("users", "Fetch and list all Devyce users");
+        var command = new Command("users", "List all Devyce users with their details");
 
-        var jsonOption = new Option<bool>("--json", "-j")
-        {
-            Description = "Output users as JSON format"
-        };
+        var formatOption = CreateFormatOption();
+        command.Options.Add(formatOption);
 
-        userCommand.Options.Add(jsonOption);
-
-        userCommand.SetAction(async (parseResult, cancellationToken) =>
+        command.SetAction(async (parseResult, cancellationToken) =>
         {
             using var scope = serviceProvider.CreateScope();
             var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
 
-            var useJson = parseResult.GetValue(jsonOption);
+            var outputFormat = parseResult.GetValue(formatOption);
 
-            if (useJson)
-            {
-                await dataService.FetchAndLogUsersAsJsonAsync();
-            }
-            else
-            {
-                await dataService.FetchAndLogUsersAsync();
-            }
+            await dataService.FetchAndLogUsersAsync(outputFormat);
         });
 
-        return userCommand;
+        return command;
     }
 
-    private Command CreateCallsCommand(Argument<DirectoryInfo> pathArgument)
+    private Command CreateCallsCommand()
     {
-        var callsCommand = new Command("calls", "Fetch and list Devyce calls");
+        var command = new Command("calls", "List Devyce calls within a specified time range");
 
-        var jsonOption = new Option<bool>("--json", "-j")
-        {
-            Description = "Output calls as JSON format"
-        };
+        var formatOption = CreateFormatOption();
+        var timeRangeOption = CreateTimeRangeOption();
 
-        var lastMinutesOption = new Option<int>("--last-minutes", "-l")
-        {
-            Description = "Last x minutes",
-            DefaultValueFactory = parsedValue => 120
-        };
+        command.Options.Add(formatOption);
+        command.Options.Add(timeRangeOption);
 
-        callsCommand.Options.Add(jsonOption);
-        callsCommand.Options.Add(lastMinutesOption);
-        callsCommand.Arguments.Add(pathArgument);
-
-        callsCommand.SetAction(async (parseResult, cancellationToken) =>
+        command.SetAction(async (parseResult, cancellationToken) =>
         {
             using var scope = serviceProvider.CreateScope();
             var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
-            var path = parseResult.GetValue(pathArgument);
 
-            var useLastMinuteOptions = parseResult.GetValue(lastMinutesOption);
+            var outputFormat = parseResult.GetValue(formatOption);
+            var lastMinutes = parseResult.GetValue(timeRangeOption);
 
-            var useJson = parseResult.GetValue(jsonOption);
-
-            if (useJson)
-            {
-                await dataService.FetchAndLogRecentCallsAsJsonAsync(useLastMinuteOptions);
-            }
-            else
-            {
-                await dataService.FetchAndLogRecentCallsAsync(useLastMinuteOptions);
-            }
+            await dataService.FetchAndLogRecentCallsAsync(lastMinutes, outputFormat);
         });
 
-        return callsCommand;
+        return command;
     }
 
     private Command CreateCrmDetailsCommand()
     {
-        var callsCommand = new Command("crm", "Fetch and list Devyce calls CRM details");
+        var command = new Command("crm-details", "List CRM synchronization details for Devyce calls");
 
-        var jsonOption = new Option<bool>("--json", "-j")
-        {
-            Description = "Output calls as JSON format"
-        };
+        var formatOption = CreateFormatOption();
+        var timeRangeOption = CreateTimeRangeOption();
 
-        var lastMinutesOption = new Option<int>("--last-minutes", "-l")
-        {
-            Description = "Last x minutes",
-            DefaultValueFactory = parsedValue => 120
-        };
+        command.Options.Add(formatOption);
+        command.Options.Add(timeRangeOption);
 
-        callsCommand.Options.Add(jsonOption);
-        callsCommand.Options.Add(lastMinutesOption);
-
-        callsCommand.SetAction(async (parseResult, cancellationToken) =>
+        command.SetAction(async (parseResult, cancellationToken) =>
         {
             using var scope = serviceProvider.CreateScope();
             var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
 
-            var useLastMinuteOptions = parseResult.GetValue(lastMinutesOption);
+            var outputFormat = parseResult.GetValue(formatOption);
+            var lastMinutes = parseResult.GetValue(timeRangeOption);
 
-            var useJson = parseResult.GetValue(jsonOption);
-
-            if (useJson)
-            {
-                await dataService.FetchAndLogRecentCallsCrmDetailsAsJsonAsync(useLastMinuteOptions);
-            }
-            else
-            {
-                await dataService.FetchAndLogRecentCallsCrmDetailsAsync(useLastMinuteOptions);
-            }
+            await dataService.FetchAndLogRecentCallsCrmDetailsAsync(lastMinutes, outputFormat);
         });
 
-        return callsCommand;
+        return command;
+    }
+
+    private static Option<OutputFormat> CreateFormatOption()
+    {
+        return new Option<OutputFormat>("--format", "-f")
+        {
+            Description = "Output format for the results",
+            DefaultValueFactory = _ => OutputFormat.Text
+        };
+    }
+
+    private static Option<int> CreateTimeRangeOption()
+    {
+        return new Option<int>("--last-minutes", "-m")
+        {
+            Description = "Number of minutes to look back for calls (default: 120)",
+            DefaultValueFactory = _ => 120
+        };
     }
 }

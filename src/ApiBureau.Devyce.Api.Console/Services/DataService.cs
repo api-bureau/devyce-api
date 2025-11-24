@@ -6,11 +6,16 @@ using System.Text.Json;
 
 namespace ApiBureau.Devyce.Api.Console.Services;
 
+/// <summary>
+/// Service for fetching and displaying Devyce data in various formats.
+/// </summary>
 public class DataService
 {
     private readonly IDevyceClient _client;
     private readonly ILogger<DataService> _logger;
-    private readonly JsonSerializerOptions _indentedJsonOptions = new() { WriteIndented = true };
+    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+
+    private const int DefaultTimeRangeMinutes = 120;
 
     public DataService(IDevyceClient client, ILogger<DataService> logger)
     {
@@ -18,117 +23,121 @@ public class DataService
         _logger = logger;
     }
 
-    public async Task RunAsync()
-    {
-        await FetchAndLogUsersAsJsonAsync();
-
-        var result = await FetchAndLogRecentCallsAsJsonAsync();
-
-        await FetchCrmSyncDetailsAsync(result);
-
-        await FetchTranscriptsAsync(result?.FirstOrDefault()?.Id);
-    }
-
-    public async Task FetchAndLogUsersAsJsonAsync()
+    /// <summary>
+    /// Fetches and logs all Devyce users in the specified format.
+    /// </summary>
+    public async Task FetchAndLogUsersAsync(OutputFormat format = OutputFormat.Text)
     {
         var users = await FetchUsersAsync();
 
-        _logger.LogInformation("** List Devyce users as JSON ***");
-        _logger.LogInformation(JsonSerializer.Serialize(users, _indentedJsonOptions));
-        _logger.LogInformation("Total users: {count}", users.Count);
-    }
+        _logger.LogInformation("=== Devyce Users ===");
 
-    public async Task FetchAndLogUsersAsync()
-    {
-        var users = await FetchUsersAsync();
-
-        _logger.LogInformation("** List Devyce users ***");
-
-        foreach (var user in users.OrderByDescending(s => s.ActiveState).ThenBy(s => s.FullName))
+        if (format == OutputFormat.Json)
         {
-            _logger.LogInformation("{active}: {name}: {email}", user.ActiveState, user.FullName, user.EmailAddress);
+            _logger.LogInformation(JsonSerializer.Serialize(users, _jsonOptions));
+        }
+        else
+        {
+            foreach (var user in users.OrderByDescending(u => u.ActiveState).ThenBy(u => u.FullName))
+            {
+                _logger.LogInformation("{Status} | {Name} | {Email}",
+                    user.ActiveState,
+                    user.FullName,
+                    user.EmailAddress);
+            }
         }
 
-        _logger.LogInformation("Total users: {count}", users.Count);
+        _logger.LogInformation("Total users: {Count}", users.Count);
     }
 
-    public async Task<List<CallDto>> FetchAndLogRecentCallsAsJsonAsync(int minutes = 120)
+    /// <summary>
+    /// Fetches and logs recent calls within the specified time range.
+    /// </summary>
+    public async Task<List<CallDto>> FetchAndLogRecentCallsAsync(
+        int lastMinutes = DefaultTimeRangeMinutes,
+        OutputFormat format = OutputFormat.Text)
     {
-        var startDate = DateTime.Now.AddMinutes(-minutes);
-
+        var startDate = DateTime.Now.AddMinutes(-lastMinutes);
         var calls = await FetchCallsAsync(startDate);
 
-        _logger.LogInformation("** List Devyce calls as JSON ***");
-        _logger.LogInformation(JsonSerializer.Serialize(calls, _indentedJsonOptions));
-        _logger.LogInformation("Total calls: {count}", calls.Count);
+        _logger.LogInformation("=== Devyce Calls (Last {Minutes} minutes) ===", lastMinutes);
+
+        if (format == OutputFormat.Json)
+        {
+            _logger.LogInformation(JsonSerializer.Serialize(calls, _jsonOptions));
+        }
+        else
+        {
+            foreach (var call in calls)
+            {
+                _logger.LogInformation("{StartTime:yyyy-MM-dd HH:mm:ss} | Duration: {Duration}s | From: {Caller} | To: {Called}",
+                    call.StartTimeUtc,
+                    call.Duration,
+                    call.OriginatingNumber,
+                    call.CalledNumber);
+            }
+        }
+
+        _logger.LogInformation("Total calls: {Count}", calls.Count);
 
         return calls;
     }
 
-    public async Task<List<CallDto>> FetchAndLogRecentCallsAsync(int minutes = 120)
+    /// <summary>
+    /// Fetches and logs CRM synchronization details for recent calls.
+    /// </summary>
+    public async Task FetchAndLogRecentCallsCrmDetailsAsync(
+        int lastMinutes = DefaultTimeRangeMinutes,
+        OutputFormat format = OutputFormat.Text)
     {
-        var startDate = DateTime.Now.AddMinutes(-minutes);
-
+        var startDate = DateTime.Now.AddMinutes(-lastMinutes);
         var calls = await FetchCallsAsync(startDate);
+        var crmDetails = await FetchCrmSyncDetailsAsync(calls);
 
-        _logger.LogInformation("** List Devyce calls ***");
+        _logger.LogInformation("=== Devyce CRM Sync Details (Last {Minutes} minutes) ===", lastMinutes);
 
-        foreach (var call in calls)
+        if (format == OutputFormat.Json)
         {
-            _logger.LogInformation("Start time: {start}, duration: {duration}, caller: {callerNumber}, called: {calledNumber}", call.StartTimeUtc, call.Duration, call.OriginatingNumber, call.CalledNumber);
+            var detailsForJson = crmDetails.Select(d => new
+            {
+                CallId = d.CallId,
+                CrmDetails = d.Details
+            });
+            _logger.LogInformation(JsonSerializer.Serialize(detailsForJson, _jsonOptions));
+        }
+        else
+        {
+            foreach (var call in calls)
+            {
+                var matchingDetails = crmDetails
+                    .Where(d => d.CallId == call.Id)
+                    .SelectMany(d => d.Details)
+                    .Select(detail => $"{detail.CrmName}:{detail.ContactType}:{detail.ContactId}")
+                    .ToList();
+
+                var crmInfo = matchingDetails.Any() ? string.Join(", ", matchingDetails) : "No CRM data";
+
+                _logger.LogInformation("{StartTime:yyyy-MM-dd HH:mm:ss} | Duration: {Duration}s | From: {Caller} | To: {Called} | CRM: {Crm}",
+                    call.StartTimeUtc,
+                    call.Duration,
+                    call.OriginatingNumber,
+                    call.CalledNumber,
+                    crmInfo);
+            }
         }
 
-        _logger.LogInformation("Total calls: {count}", calls.Count);
-
-        return calls;
-    }
-
-    public async Task<List<(string CallId, CrmSyncDetailsDto Detail)>> FetchAndLogRecentCallsCrmDetailsAsJsonAsync(int minutes = 120)
-    {
-        var startDate = DateTime.Now.AddMinutes(-minutes);
-
-        var calls = await FetchCallsAsync(startDate);
-        var crmDetails = await FetchCrmSyncDetailsAsync(calls, logEachItem: false);
-
-        _logger.LogInformation("** List Devyce CRM call details as JSON ***");
-        foreach (var item in crmDetails)
-        {
-            _logger.LogInformation("CallId: {id}, crm: {crm}", item.CallId, JsonSerializer.Serialize(item.Detail, _indentedJsonOptions));
-        }
-        _logger.LogInformation("Total details: {count}", crmDetails.Count);
-
-        return crmDetails;
-    }
-
-    public async Task<List<CallDto>> FetchAndLogRecentCallsCrmDetailsAsync(int minutes = 120)
-    {
-        var startDate = DateTime.Now.AddMinutes(-minutes);
-
-        var calls = await FetchCallsAsync(startDate);
-        var crmDetails = await FetchCrmSyncDetailsAsync(calls, logEachItem: false);
-
-        _logger.LogInformation("** List Devyce calls ***");
-
-        foreach (var call in calls)
-        {
-            var crmDetail = crmDetails.Where(w => w.CallId == call.Id).Select(s => $"{s.Detail.CrmName}:{s.Detail.ContactType}:{s.Detail.ContactId}").ToList();
-            var joinCrmDetails = string.Join(", ", crmDetail);
-
-            _logger.LogInformation("Start time: {start}, duration: {duration}, caller: {callerNumber}, called: {calledNumber}, crm: {crm}", call.StartTimeUtc, call.Duration, call.OriginatingNumber, call.CalledNumber, joinCrmDetails);
-        }
-
-        _logger.LogInformation("Total calls: {count}", calls.Count);
-
-        return calls;
+        _logger.LogInformation("Total calls: {CallCount} | CRM details found: {CrmCount}",
+            calls.Count,
+            crmDetails.Sum(d => d.Details.Count));
     }
 
     private async Task<List<UserDto>> FetchUsersAsync()
     {
-        _logger.LogInformation("** Fetching Devyce users ***");
+        _logger.LogDebug("Fetching Devyce users...");
 
         var users = await _client.Users.GetAsync(default);
 
-        _logger.LogInformation("Fetched users: {count}", users.Count);
+        _logger.LogDebug("Fetched {Count} users", users.Count);
 
         return users;
     }
@@ -137,55 +146,58 @@ public class DataService
     {
         var callQuery = new CallQuery(startDate, DateTime.Now);
 
-        _logger.LogInformation("** Fetching Devyce calls ***");
+        _logger.LogDebug("Fetching Devyce calls from {StartDate}...", startDate);
 
         var calls = await _client.Calls.GetAsync(callQuery);
 
-        _logger.LogInformation("Fetched calls: {count}", calls.Count);
+        _logger.LogDebug("Fetched {Count} calls", calls.Count);
 
         return calls;
     }
 
-    private async Task<List<(string CallId, CrmSyncDetailsDto Detail)>> FetchCrmSyncDetailsAsync(List<CallDto> calls, bool logEachItem = true)
+    private async Task<List<(string CallId, List<CrmSyncDetailsDto> Details)>> FetchCrmSyncDetailsAsync(List<CallDto> calls)
     {
-        var crmDetails = new List<(string CallId, CrmSyncDetailsDto Detail)>();
+        var crmDetailsList = new List<(string CallId, List<CrmSyncDetailsDto> Details)>();
 
-        _logger.LogInformation("** Fetching Devyce CRM details ***");
+        _logger.LogDebug("Fetching CRM sync details for {Count} calls...", calls.Count);
 
-        foreach (var callDto in calls)
+        foreach (var call in calls)
         {
-            var crmSyncDetails = await _client.CrmSyncDetails.GetAsync(callDto.Id);
+            var crmSyncDetails = await _client.CrmSyncDetails.GetAsync(call.Id);
 
-            if (logEachItem)
+            if (crmSyncDetails is null || crmSyncDetails.Count == 0)
+                continue;
+
+            var validDetails = crmSyncDetails
+                .Where(detail => !string.IsNullOrWhiteSpace(detail.ContactId))
+                .ToList();
+
+            if (validDetails.Count > 0)
             {
-                _logger.LogInformation(callDto.Id + ":" + JsonSerializer.Serialize(crmSyncDetails, _indentedJsonOptions));
-            }
-
-            if (crmSyncDetails is null) continue;
-
-            foreach (var detail in crmSyncDetails.Where(w => !string.IsNullOrWhiteSpace(w.ContactId)))
-            {
-                crmDetails.Add((callDto.Id, detail));
+                crmDetailsList.Add((call.Id, validDetails));
             }
         }
 
-        _logger.LogInformation("Fetched CRM details from {calls} calls: {count}", calls.Count, crmDetails.Count);
+        _logger.LogDebug("Fetched CRM details for {Count} calls", crmDetailsList.Count);
 
-        return crmDetails;
+        return crmDetailsList;
     }
 
-    // Transcript test, you might need to request additional permission to access this endpoint
-    private async Task FetchTranscriptsAsync(string? callId)
+    /// <summary>
+    /// Fetches and logs call transcript (requires additional API permissions).
+    /// </summary>
+    private async Task FetchAndLogTranscriptAsync(string? callId)
     {
-        if (string.IsNullOrEmpty(callId))
+        if (string.IsNullOrWhiteSpace(callId))
         {
-            _logger.LogWarning("No call ID available to fetch transcript.");
-
+            _logger.LogWarning("No call ID provided for transcript fetch");
             return;
         }
 
+        _logger.LogDebug("Fetching transcript for call {CallId}...", callId);
+
         var transcript = await _client.Transcripts.GetAsync(callId, default);
 
-        _logger.LogInformation(JsonSerializer.Serialize(transcript, _indentedJsonOptions));
+        _logger.LogInformation("Transcript: {Transcript}", JsonSerializer.Serialize(transcript, _jsonOptions));
     }
 }

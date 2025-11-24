@@ -1,3 +1,4 @@
+using ApiBureau.Devyce.Api.Dtos;
 using ApiBureau.Devyce.Api.Interfaces;
 using ApiBureau.Devyce.Api.Queries;
 using Microsoft.Extensions.Logging;
@@ -21,7 +22,7 @@ public class DataService
     {
         var startDate = DateTime.Now.AddMinutes(-120);
 
-        await FetchUsersAsync();
+        await FetchUsersAsJsonAsync();
 
         var result = await FetchCallsAsync(startDate);
 
@@ -30,11 +31,38 @@ public class DataService
         await FetchTranscriptsAsync(result?.FirstOrDefault()?.Id);
     }
 
-    private async Task FetchUsersAsync()
+    public async Task<List<UserDto>> FetchUsersAsync()
     {
+        _logger.LogInformation("** Fetching Devyce users ***");
+
         var users = await _client.Users.GetAsync(default);
 
+        _logger.LogInformation("Fetched users: {count}", users.Count);
+
+        return users;
+    }
+
+    public async Task FetchUsersAsJsonAsync()
+    {
+        var users = await FetchUsersAsync();
+
+        _logger.LogInformation("** List Devyce users as JSON ***");
         _logger.LogInformation(JsonSerializer.Serialize(users, _indentedJsonOptions));
+        _logger.LogInformation("Total users: {count}", users.Count);
+    }
+
+    public async Task FetchAndLogUsersAsync()
+    {
+        var users = await FetchUsersAsync();
+
+        _logger.LogInformation("** List Devyce users ***");
+
+        foreach (var user in users.OrderByDescending(s => s.ActiveState).ThenBy(s => s.FullName))
+        {
+            _logger.LogInformation("{active}: {name}: {email}", user.ActiveState, user.FullName, user.EmailAddress);
+        }
+
+        _logger.LogInformation("Total users: {count}", users.Count);
     }
 
     private async Task<List<Dtos.CallDto>> FetchCallsAsync(DateTime startDate)

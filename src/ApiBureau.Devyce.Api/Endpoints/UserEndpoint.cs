@@ -14,7 +14,7 @@ public class UserEndpoint : BaseEndpoint
     /// <summary>
     /// Retrieves all users for a specific organization.
     /// </summary>
-    public async Task<List<UserDto>> GetAsync(CancellationToken cancellationToken)
+    public async Task<List<UserDto>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await HttpClient.GetAsync<List<UserDto>>(
             $"/Users",

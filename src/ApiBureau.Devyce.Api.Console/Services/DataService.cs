@@ -20,29 +20,16 @@ public class DataService
 
     public async Task RunAsync()
     {
-        var startDate = DateTime.Now.AddMinutes(-120);
+        await FetchAndLogUsersAsJsonAsync();
 
-        await FetchUsersAsJsonAsync();
-
-        var result = await FetchCallsAsync(startDate);
+        var result = await FetchAndLogRecentCallsAsJsonAsync();
 
         await FetchCrmSyncDetailsAsync(result);
 
         await FetchTranscriptsAsync(result?.FirstOrDefault()?.Id);
     }
 
-    public async Task<List<UserDto>> FetchUsersAsync()
-    {
-        _logger.LogInformation("** Fetching Devyce users ***");
-
-        var users = await _client.Users.GetAsync(default);
-
-        _logger.LogInformation("Fetched users: {count}", users.Count);
-
-        return users;
-    }
-
-    public async Task FetchUsersAsJsonAsync()
+    public async Task FetchAndLogUsersAsJsonAsync()
     {
         var users = await FetchUsersAsync();
 
@@ -65,15 +52,59 @@ public class DataService
         _logger.LogInformation("Total users: {count}", users.Count);
     }
 
-    private async Task<List<Dtos.CallDto>> FetchCallsAsync(DateTime startDate)
+    public async Task<List<CallDto>> FetchAndLogRecentCallsAsJsonAsync(int minutes = 120)
+    {
+        var startDate = DateTime.Now.AddMinutes(-minutes);
+
+        var calls = await FetchCallsAsync(startDate);
+
+        _logger.LogInformation("** List Devyce calls as JSON ***");
+        _logger.LogInformation(JsonSerializer.Serialize(calls, _indentedJsonOptions));
+        _logger.LogInformation("Total calls: {count}", calls.Count);
+
+        return calls;
+    }
+
+    public async Task<List<CallDto>> FetchAndLogRecentCallsAsync(int minutes = 120)
+    {
+        var startDate = DateTime.Now.AddMinutes(-minutes);
+
+        var calls = await FetchCallsAsync(startDate);
+
+        _logger.LogInformation("** List Devyce calls ***");
+
+        foreach (var call in calls)
+        {
+            _logger.LogInformation("Start time: {start}, duration: {duration}, caller: {callerId}, called: {calledNumer}", call.StartTimeUtc, call.Duration, call.CallerId, call.CalledNumber);
+        }
+
+        _logger.LogInformation("Total calls: {count}", calls.Count);
+
+        return calls;
+    }
+
+    private async Task<List<UserDto>> FetchUsersAsync()
+    {
+        _logger.LogInformation("** Fetching Devyce users ***");
+
+        var users = await _client.Users.GetAsync(default);
+
+        _logger.LogInformation("Fetched users: {count}", users.Count);
+
+        return users;
+    }
+
+    private async Task<List<CallDto>> FetchCallsAsync(DateTime startDate)
     {
         var callQuery = new CallQuery(startDate, DateTime.Now);
 
-        var result = await _client.Calls.GetAsync(callQuery);
+        _logger.LogInformation("** Fetching Devyce calls ***");
 
-        _logger.LogInformation(JsonSerializer.Serialize(result, _indentedJsonOptions));
+        var calls = await _client.Calls.GetAsync(callQuery);
 
-        return result;
+        _logger.LogInformation("Fetched calls: {count}", calls.Count);
+
+        return calls;
     }
 
     private async Task FetchCrmSyncDetailsAsync(List<Dtos.CallDto> result)

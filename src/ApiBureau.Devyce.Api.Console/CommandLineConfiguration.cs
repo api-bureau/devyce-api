@@ -16,23 +16,23 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
     /// <returns>Configured root command ready for parsing.</returns>
     public RootCommand CreateRootCommand()
     {
-        var pathArgument = CreatePathArgument();
-        var scanCommand = CreateUsersCommand();
-        var generateCommand = CreateGenerateCommand(pathArgument);
+        var exportPathArgument = CreatePathArgument();
+        var usersCommand = CreateUsersCommand();
+        var callsCommand = CreateGenerateCommand(exportPathArgument);
 
         return new RootCommand("Devyce API examples")
         {
-            scanCommand,
-            generateCommand
+            usersCommand,
+            callsCommand
         };
     }
 
     private static Argument<DirectoryInfo> CreatePathArgument()
     {
-        return new Argument<DirectoryInfo>("examples-root-path")
+        return new Argument<DirectoryInfo>("export-path")
         {
-            Description = "The root path of the examples to scan.",
-            DefaultValueFactory = _ => new DirectoryInfo(Path.Combine("..", "..", "..", "..", "..", "examples", "code-only"))
+            Description = "The export path where the items will be exported",
+            DefaultValueFactory = _ => new DirectoryInfo(Path.Combine("export", "data"))
         };
     }
 

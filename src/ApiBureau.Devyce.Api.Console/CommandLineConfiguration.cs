@@ -140,7 +140,7 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
 
             if (useJson)
             {
-                await dataService.FetchAndLogRecentCallsAsJsonAsync(useLastMinuteOptions);
+                await dataService.FetchAndLogRecentCallsCrmDetailsAsJsonAsync(useLastMinuteOptions);
             }
             else
             {

@@ -83,6 +83,23 @@ public class DataService
         return calls;
     }
 
+    public async Task<List<(string CallId, CrmSyncDetailsDto Detail)>> FetchAndLogRecentCallsCrmDetailsAsJsonAsync(int minutes = 120)
+    {
+        var startDate = DateTime.Now.AddMinutes(-minutes);
+
+        var calls = await FetchCallsAsync(startDate);
+        var crmDetails = await FetchCrmSyncDetailsAsync(calls, logEachItem: false);
+
+        _logger.LogInformation("** List Devyce CRM call details as JSON ***");
+        foreach (var item in crmDetails)
+        {
+            _logger.LogInformation("CallId: {id}, crm: {crm}", item.CallId, JsonSerializer.Serialize(item.Detail, _indentedJsonOptions));
+        }
+        _logger.LogInformation("Total details: {count}", crmDetails.Count);
+
+        return crmDetails;
+    }
+
     public async Task<List<CallDto>> FetchAndLogRecentCallsCrmDetailsAsync(int minutes = 120)
     {
         var startDate = DateTime.Now.AddMinutes(-minutes);

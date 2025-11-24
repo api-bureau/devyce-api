@@ -83,6 +83,28 @@ public class DataService
         return calls;
     }
 
+    public async Task<List<CallDto>> FetchAndLogRecentCallsCrmDetailsAsync(int minutes = 120)
+    {
+        var startDate = DateTime.Now.AddMinutes(-minutes);
+
+        var calls = await FetchCallsAsync(startDate);
+        var crmDetails = await FetchCrmSyncDetailsAsync(calls, logEachItem: false);
+
+        _logger.LogInformation("** List Devyce calls ***");
+
+        foreach (var call in calls)
+        {
+            var crmDetail = crmDetails.Where(w => w.CallId == call.Id).Select(s => $"{s.Detail.CrmName}:{s.Detail.ContactType}:{s.Detail.ContactId}").ToList();
+            var joinCrmDetails = string.Join(", ", crmDetail);
+
+            _logger.LogInformation("Start time: {start}, duration: {duration}, caller: {callerNumber}, called: {calledNumber}, crm: {crm}", call.StartTimeUtc, call.Duration, call.OriginatingNumber, call.CalledNumber, joinCrmDetails);
+        }
+
+        _logger.LogInformation("Total calls: {count}", calls.Count);
+
+        return calls;
+    }
+
     private async Task<List<UserDto>> FetchUsersAsync()
     {
         _logger.LogInformation("** Fetching Devyce users ***");
@@ -107,14 +129,32 @@ public class DataService
         return calls;
     }
 
-    private async Task FetchCrmSyncDetailsAsync(List<Dtos.CallDto> result)
+    private async Task<List<(string CallId, CrmSyncDetailsDto Detail)>> FetchCrmSyncDetailsAsync(List<CallDto> calls, bool logEachItem = true)
     {
-        foreach (var callDto in result)
-        {
-            var sync = await _client.CrmSyncDetails.GetAsync(callDto.Id);
+        var crmDetails = new List<(string CallId, CrmSyncDetailsDto Detail)>();
 
-            _logger.LogInformation(callDto.Id + ":" + JsonSerializer.Serialize(sync, _indentedJsonOptions));
+        _logger.LogInformation("** Fetching Devyce CRM details ***");
+
+        foreach (var callDto in calls)
+        {
+            var crmSyncDetails = await _client.CrmSyncDetails.GetAsync(callDto.Id);
+
+            if (logEachItem)
+            {
+                _logger.LogInformation(callDto.Id + ":" + JsonSerializer.Serialize(crmSyncDetails, _indentedJsonOptions));
+            }
+
+            if (crmSyncDetails is null) continue;
+
+            foreach (var detail in crmSyncDetails.Where(w => !string.IsNullOrWhiteSpace(w.ContactId)))
+            {
+                crmDetails.Add((callDto.Id, detail));
+            }
         }
+
+        _logger.LogInformation("Fetched CRM details from {calls} calls: {count}", calls.Count, crmDetails.Count);
+
+        return crmDetails;
     }
 
     // Transcript test, you might need to request additional permission to access this endpoint

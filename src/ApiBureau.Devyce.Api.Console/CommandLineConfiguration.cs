@@ -19,11 +19,13 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
         var exportPathArgument = CreatePathArgument();
         var usersCommand = CreateUsersCommand();
         var callsCommand = CreateCallsCommand(exportPathArgument);
+        var crmDetailsCommand = CreateCrmDetailsCommand();
 
         return new RootCommand("Devyce API examples")
         {
             usersCommand,
-            callsCommand
+            callsCommand,
+            crmDetailsCommand
         };
     }
 
@@ -103,6 +105,46 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
             else
             {
                 await dataService.FetchAndLogRecentCallsAsync(useLastMinuteOptions);
+            }
+        });
+
+        return callsCommand;
+    }
+
+    private Command CreateCrmDetailsCommand()
+    {
+        var callsCommand = new Command("crm", "Fetch and list Devyce calls CRM details");
+
+        var jsonOption = new Option<bool>("--json", "-j")
+        {
+            Description = "Output calls as JSON format"
+        };
+
+        var lastMinutesOption = new Option<int>("--last-minutes", "-l")
+        {
+            Description = "Last x minutes",
+            DefaultValueFactory = parsedValue => 120
+        };
+
+        callsCommand.Options.Add(jsonOption);
+        callsCommand.Options.Add(lastMinutesOption);
+
+        callsCommand.SetAction(async (parseResult, cancellationToken) =>
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
+
+            var useLastMinuteOptions = parseResult.GetValue(lastMinutesOption);
+
+            var useJson = parseResult.GetValue(jsonOption);
+
+            if (useJson)
+            {
+                await dataService.FetchAndLogRecentCallsAsJsonAsync(useLastMinuteOptions);
+            }
+            else
+            {
+                await dataService.FetchAndLogRecentCallsCrmDetailsAsync(useLastMinuteOptions);
             }
         });
 

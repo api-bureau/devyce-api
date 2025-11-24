@@ -19,12 +19,14 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
         var usersCommand = CreateUsersCommand();
         var callsCommand = CreateCallsCommand();
         var crmDetailsCommand = CreateCrmDetailsCommand();
+        var transcriptsCommand = CreateTranscriptsCommand();
 
         return new RootCommand("Devyce API Console - Interact with Devyce API to manage users, calls, and CRM data")
         {
             usersCommand,
             callsCommand,
-            crmDetailsCommand
+            crmDetailsCommand,
+            transcriptsCommand
         };
     }
 
@@ -91,6 +93,31 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
             var lastMinutes = parseResult.GetValue(timeRangeOption);
 
             await dataService.FetchAndLogRecentCallsCrmDetailsAsync(lastMinutes, outputFormat);
+        });
+
+        return command;
+    }
+
+    private Command CreateTranscriptsCommand()
+    {
+        var command = new Command("transcripts", "Fetch and display call transcript for a specific call");
+
+        var callIdOption = new Option<string>("--call-id", "-i")
+        {
+            Description = "The call ID to retrieve transcript for (use 'calls' command to list available IDs)",
+            Arity = ArgumentArity.ExactlyOne
+        };
+
+        command.Options.Add(callIdOption);
+
+        command.SetAction(async (parseResult, cancellationToken) =>
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
+
+            var callId = parseResult.GetValue(callIdOption);
+
+            await dataService.FetchAndLogTranscriptAsync(callId);
         });
 
         return command;

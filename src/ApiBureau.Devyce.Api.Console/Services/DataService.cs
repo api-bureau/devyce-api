@@ -70,11 +70,12 @@ public class DataService
         {
             foreach (var call in calls)
             {
-                _logger.LogInformation("{StartTime:yyyy-MM-dd HH:mm:ss} | Duration: {Duration}s | From: {Caller} | To: {Called}",
+                _logger.LogInformation("{StartTime:yyyy-MM-dd HH:mm:ss} | Duration: {Duration}s | From: {Caller} | To: {Called} | Id: {CallId}",
                     call.StartTimeUtc,
                     call.Duration,
                     call.OriginatingNumber,
-                    call.CalledNumber);
+                    call.CalledNumber,
+                    call.Id);
             }
         }
 
@@ -186,18 +187,19 @@ public class DataService
     /// <summary>
     /// Fetches and logs call transcript (requires additional API permissions).
     /// </summary>
-    private async Task FetchAndLogTranscriptAsync(string? callId)
+    public async Task FetchAndLogTranscriptAsync(string? callId)
     {
         if (string.IsNullOrWhiteSpace(callId))
         {
             _logger.LogWarning("No call ID provided for transcript fetch");
+
             return;
         }
 
-        _logger.LogDebug("Fetching transcript for call {CallId}...", callId);
+        _logger.LogInformation("=== Transcript for Call {CallId} ===", callId);
 
         var transcript = await _client.Transcripts.GetAsync(callId, default);
 
-        _logger.LogInformation("Transcript: {Transcript}", JsonSerializer.Serialize(transcript, _jsonOptions));
+        _logger.LogInformation("{Transcript}", JsonSerializer.Serialize(transcript, _jsonOptions));
     }
 }

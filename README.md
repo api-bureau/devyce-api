@@ -94,7 +94,7 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
   - Access call transcriptions (requires additional API permissions).
   ```csharp
   // Get call transcript
-  Cvar transcript = await client.Transcripts.GetAsync(
+  var transcript = await client.Transcripts.GetAsync(
       callId, 
       cancellationToken);
   ```

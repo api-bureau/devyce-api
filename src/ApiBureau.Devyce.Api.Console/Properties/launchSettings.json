@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ApiBureau.Devyce.Api.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "users",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

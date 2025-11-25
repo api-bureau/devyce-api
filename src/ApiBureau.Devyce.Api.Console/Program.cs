@@ -1,16 +1,27 @@
 using ApiBureau.Devyce.Api.Console;
 using ApiBureau.Devyce.Api.Console.Services;
+using ApiBureau.Devyce.Api.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
 
-var services = new ServiceCollection();
+var builder = Host.CreateApplicationBuilder(args);
 
-var startup = new Startup();
+builder.Services.AddSerilog((services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(builder.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+});
 
-startup.ConfigureServices(services);
+builder.Services.AddDevyce(builder.Configuration);
+builder.Services.AddScoped<DataService>();
 
-var serviceProvider = services.BuildServiceProvider();
+using var host = builder.Build();
 
-var dataService = serviceProvider.GetService<DataService>()
-                  ?? throw new ArgumentNullException($"{nameof(DataService)} cannot be null");
+var cliConfiguration = new CommandLineConfiguration(host.Services);
+var rootCommand = cliConfiguration.CreateRootCommand();
 
-await dataService.RunAsync();
+var parseResult = rootCommand.Parse(args);
+return parseResult.Invoke();

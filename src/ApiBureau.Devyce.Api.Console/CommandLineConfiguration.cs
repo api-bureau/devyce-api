@@ -44,7 +44,7 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
 
             var outputFormat = parseResult.GetValue(formatOption);
 
-            await dataService.FetchAndLogUsersAsync(outputFormat);
+            await dataService.FetchAndLogUsersAsync(outputFormat, cancellationToken);
         });
 
         return command;
@@ -68,7 +68,7 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
             var outputFormat = parseResult.GetValue(formatOption);
             var lastMinutes = parseResult.GetValue(timeRangeOption);
 
-            await dataService.FetchAndLogRecentCallsAsync(lastMinutes, outputFormat);
+            await dataService.FetchAndLogRecentCallsAsync(lastMinutes, outputFormat, cancellationToken);
         });
 
         return command;
@@ -92,7 +92,7 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
             var outputFormat = parseResult.GetValue(formatOption);
             var lastMinutes = parseResult.GetValue(timeRangeOption);
 
-            await dataService.FetchAndLogRecentCallsCrmDetailsAsync(lastMinutes, outputFormat);
+            await dataService.FetchAndLogRecentCallsCrmDetailsAsync(lastMinutes, outputFormat, cancellationToken);
         });
 
         return command;
@@ -117,7 +117,7 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
 
             var callId = parseResult.GetValue(callIdOption);
 
-            await dataService.FetchAndLogTranscriptAsync(callId);
+            await dataService.FetchAndLogTranscriptAsync(callId, cancellationToken);
         });
 
         return command;

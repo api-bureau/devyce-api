@@ -26,9 +26,9 @@ public class DataService
     /// <summary>
     /// Fetches and logs all Devyce users in the specified format.
     /// </summary>
-    public async Task FetchAndLogUsersAsync(OutputFormat format = OutputFormat.Text)
+    public async Task FetchAndLogUsersAsync(OutputFormat format = OutputFormat.Text, CancellationToken token = default)
     {
-        var users = await FetchUsersAsync();
+        var users = await FetchUsersAsync(token);
 
         _logger.LogInformation("=== Devyce Users ===");
 
@@ -55,10 +55,11 @@ public class DataService
     /// </summary>
     public async Task<List<CallDto>> FetchAndLogRecentCallsAsync(
         int lastMinutes = DefaultTimeRangeMinutes,
-        OutputFormat format = OutputFormat.Text)
+        OutputFormat format = OutputFormat.Text,
+        CancellationToken token = default)
     {
         var startDate = DateTime.Now.AddMinutes(-lastMinutes);
-        var calls = await FetchCallsAsync(startDate);
+        var calls = await FetchCallsAsync(startDate, token);
 
         _logger.LogInformation("=== Devyce Calls (Last {Minutes} minutes) ===", lastMinutes);
 
@@ -89,11 +90,12 @@ public class DataService
     /// </summary>
     public async Task FetchAndLogRecentCallsCrmDetailsAsync(
         int lastMinutes = DefaultTimeRangeMinutes,
-        OutputFormat format = OutputFormat.Text)
+        OutputFormat format = OutputFormat.Text,
+        CancellationToken token = default)
     {
         var startDate = DateTime.Now.AddMinutes(-lastMinutes);
-        var calls = await FetchCallsAsync(startDate);
-        var crmDetails = await FetchCrmSyncDetailsAsync(calls);
+        var calls = await FetchCallsAsync(startDate, token);
+        var crmDetails = await FetchCrmSyncDetailsAsync(calls, token);
 
         _logger.LogInformation("=== Devyce CRM Sync Details (Last {Minutes} minutes) ===", lastMinutes);
 
@@ -132,31 +134,31 @@ public class DataService
             crmDetails.Sum(d => d.Details.Count));
     }
 
-    private async Task<List<UserDto>> FetchUsersAsync()
+    private async Task<List<UserDto>> FetchUsersAsync(CancellationToken token)
     {
         _logger.LogDebug("Fetching Devyce users...");
 
-        var users = await _client.Users.GetAsync(default);
+        var users = await _client.Users.GetAsync(token);
 
         _logger.LogDebug("Fetched {Count} users", users.Count);
 
         return users;
     }
 
-    private async Task<List<CallDto>> FetchCallsAsync(DateTime startDate)
+    private async Task<List<CallDto>> FetchCallsAsync(DateTime startDate, CancellationToken token)
     {
         var callQuery = new CallQuery(startDate, DateTime.Now);
 
         _logger.LogDebug("Fetching Devyce calls from {StartDate}...", startDate);
 
-        var calls = await _client.Calls.GetAsync(callQuery);
+        var calls = await _client.Calls.GetAsync(callQuery, token);
 
         _logger.LogDebug("Fetched {Count} calls", calls.Count);
 
         return calls;
     }
 
-    private async Task<List<(string CallId, List<CrmSyncDetailsDto> Details)>> FetchCrmSyncDetailsAsync(List<CallDto> calls)
+    private async Task<List<(string CallId, List<CrmSyncDetailsDto> Details)>> FetchCrmSyncDetailsAsync(List<CallDto> calls, CancellationToken token)
     {
         var crmDetailsList = new List<(string CallId, List<CrmSyncDetailsDto> Details)>();
 
@@ -164,7 +166,7 @@ public class DataService
 
         foreach (var call in calls)
         {
-            var crmSyncDetails = await _client.CrmSyncDetails.GetAsync(call.Id);
+            var crmSyncDetails = await _client.CrmSyncDetails.GetAsync(call.Id, token);
 
             if (crmSyncDetails is null || crmSyncDetails.Count == 0)
                 continue;
@@ -187,7 +189,7 @@ public class DataService
     /// <summary>
     /// Fetches and logs call transcript (requires additional API permissions).
     /// </summary>
-    public async Task FetchAndLogTranscriptAsync(string? callId)
+    public async Task FetchAndLogTranscriptAsync(string? callId, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(callId))
         {
@@ -198,7 +200,7 @@ public class DataService
 
         _logger.LogInformation("=== Transcript for Call {CallId} ===", callId);
 
-        var transcript = await _client.Transcripts.GetAsync(callId, default);
+        var transcript = await _client.Transcripts.GetAsync(callId, token);
 
         _logger.LogInformation("{Transcript}", JsonSerializer.Serialize(transcript, _jsonOptions));
     }

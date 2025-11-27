@@ -6,15 +6,17 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 public class CallEndpoint : BaseEndpoint
 {
     /// <summary>
-    /// Creates a new <see cref="CallEndpoint"/>.
+    /// Initializes a new instance of the <see cref="CallEndpoint"/> class.
     /// </summary>
-    /// <param name="httpClient">The configured Devyce HTTP connection.</param>
+    /// <param name="httpClient">The configured Devyce HTTP client connection.</param>
     public CallEndpoint(DevyceHttpClient httpClient) : base(httpClient) { }
 
     /// <summary>
-    /// Retrieves calls for a specific organization with pagination support.
+    /// Retrieves a single page of calls for a specific organization.
     /// </summary>
+    /// <param name="callQuery">The query parameters specifying the call filter criteria and pagination options.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
+    /// <returns>A list of call DTOs for the requested page; an empty list if no calls are found.</returns>
     public async Task<List<CallDto>> GetAsync(CallQuery callQuery,
         CancellationToken cancellationToken = default)
     {
@@ -28,7 +30,11 @@ public class CallEndpoint : BaseEndpoint
     /// <summary>
     /// Retrieves all calls for a specific organization, automatically handling pagination via continuation tokens.
     /// </summary>
-    /// <param name="callQuery">The initial call query parameters.</param>
+    /// <remarks>
+    /// This method handles pagination transparently by following continuation tokens returned by the API
+    /// until all available results are retrieved. It is suitable for scenarios where all call data is required.
+    /// </remarks>
+    /// <param name="callQuery">The initial call query parameters specifying the filter criteria.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
     /// <returns>A list containing all call DTOs across all pages.</returns>
     public async Task<List<CallDto>> GetAllAsync(CallQuery callQuery,

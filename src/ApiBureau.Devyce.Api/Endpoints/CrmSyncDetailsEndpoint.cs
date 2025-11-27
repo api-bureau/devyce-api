@@ -6,15 +6,17 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 public class CrmSyncDetailsEndpoint : BaseEndpoint
 {
     /// <summary>
-    /// Creates a new <see cref="CrmSyncDetailsEndpoint"/>.
+    /// Initializes a new instance of the <see cref="CrmSyncDetailsEndpoint"/> class.
     /// </summary>
-    /// <param name="httpClient">The configured Devyce HTTP connection.</param>
+    /// <param name="httpClient">The configured Devyce HTTP client connection.</param>
     public CrmSyncDetailsEndpoint(DevyceHttpClient httpClient) : base(httpClient) { }
 
     /// <summary>
-    /// Retrieves sync details for a specific call for a specific organization.
+    /// Retrieves sync details for a specific call within an organization.
     /// </summary>
+    /// <param name="callId">The call identifier.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
+    /// <returns>A collection of CRM sync details DTOs; an empty list if no sync details are found or unavailable.</returns>
     public async Task<IList<CrmSyncDetailsDto>> GetAsync(string callId,
         CancellationToken cancellationToken = default)
     {

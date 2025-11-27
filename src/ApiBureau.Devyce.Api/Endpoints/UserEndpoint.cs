@@ -6,14 +6,16 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 public class UserEndpoint : BaseEndpoint
 {
     /// <summary>
-    /// Creates a new <see cref="UserEndpoint"/>.
+    /// Initializes a new instance of the <see cref="UserEndpoint"/> class.
     /// </summary>
-    /// <param name="httpClient">The configured Devyce HTTP connection.</param>
+    /// <param name="httpClient">The configured Devyce HTTP client connection.</param>
     public UserEndpoint(DevyceHttpClient httpClient) : base(httpClient) { }
 
     /// <summary>
     /// Retrieves all users for a specific organization.
     /// </summary>
+    /// <param name="cancellationToken">A token to observe for cancellation.</param>
+    /// <returns>A list of user DTOs; an empty list if no users are found.</returns>
     public async Task<List<UserDto>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await HttpClient.GetAsync<List<UserDto>>(

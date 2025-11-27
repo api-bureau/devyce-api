@@ -6,9 +6,9 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 public class TranscriptEndpoint : BaseEndpoint
 {
     /// <summary>
-    /// Creates a new <see cref="TranscriptEndpoint"/>.
+    /// Initializes a new instance of the <see cref="TranscriptEndpoint"/> class.
     /// </summary>
-    /// <param name="httpClient">The configured Devyce HTTP connection.</param>
+    /// <param name="httpClient">The configured Devyce HTTP client connection.</param>
     public TranscriptEndpoint(DevyceHttpClient httpClient) : base(httpClient) { }
 
     /// <summary>
@@ -16,7 +16,7 @@ public class TranscriptEndpoint : BaseEndpoint
     /// </summary>
     /// <param name="callId">The call identifier.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
-    /// <returns>The call transcription if available, or null if not found or unavailable.</returns>
+    /// <returns>The call transcription if available; otherwise, null if not found or unavailable.</returns>
     public async Task<CallTranscriptionDto?> GetAsync(string callId, CancellationToken cancellationToken)
     {
         try
@@ -25,7 +25,6 @@ public class TranscriptEndpoint : BaseEndpoint
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Data.Contains("StatusCode") && ex.Data["StatusCode"]?.ToString() == "404")
         {
-            // Transcript not available - return null instead of throwing
             return null;
         }
     }

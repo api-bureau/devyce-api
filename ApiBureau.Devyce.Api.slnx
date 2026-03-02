@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/ApiBureau.Devyce.Api.Console/ApiBureau.Devyce.Api.Console.csproj" />
+  <Project Path="src/ApiBureau.Devyce.Api/ApiBureau.Devyce.Api.csproj" />
+</Solution>

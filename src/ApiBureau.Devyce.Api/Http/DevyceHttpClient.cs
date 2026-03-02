@@ -38,9 +38,6 @@ public class DevyceHttpClient
         _logger = logger;
         _settings = settings.Value;
 
-        // Settings are validated in DI. Keep this to log obvious misconfigurations early.
-        DevyceValidator.ValidateSettings(_settings, _logger);
-
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true

@@ -34,7 +34,7 @@ public class DataService
 
         if (format == OutputFormat.Json)
         {
-            _logger.LogInformation(JsonSerializer.Serialize(users, _jsonOptions));
+            _logger.LogInformation("{Data}", JsonSerializer.Serialize(users, _jsonOptions));
         }
         else
         {
@@ -65,7 +65,7 @@ public class DataService
 
         if (format == OutputFormat.Json)
         {
-            _logger.LogInformation(JsonSerializer.Serialize(calls, _jsonOptions));
+            _logger.LogInformation("{Data}", JsonSerializer.Serialize(calls, _jsonOptions));
         }
         else
         {
@@ -106,7 +106,7 @@ public class DataService
                 CallId = d.CallId,
                 CrmDetails = d.Details
             });
-            _logger.LogInformation(JsonSerializer.Serialize(detailsForJson, _jsonOptions));
+            _logger.LogInformation("{Data}", JsonSerializer.Serialize(detailsForJson, _jsonOptions));
         }
         else
         {
@@ -151,7 +151,7 @@ public class DataService
 
         _logger.LogDebug("Fetching Devyce calls from {StartDate}...", startDate);
 
-        var calls = await _client.Calls.GetAsync(callQuery, token);
+        var calls = await _client.Calls.GetAllAsync(callQuery, token);
 
         _logger.LogDebug("Fetched {Count} calls", calls.Count);
 

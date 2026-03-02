@@ -5,6 +5,8 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 /// </summary>
 public class CrmSyncDetailsEndpoint : BaseEndpoint
 {
+    private const string BaseUrl = "/Calls";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CrmSyncDetailsEndpoint"/> class.
     /// </summary>
@@ -22,7 +24,7 @@ public class CrmSyncDetailsEndpoint : BaseEndpoint
     {
         try
         {
-            return await HttpClient.GetAsync<IList<CrmSyncDetailsDto>>($"/Calls/{callId}/SyncDetails", cancellationToken) ?? [];
+            return await HttpClient.GetAsync<IList<CrmSyncDetailsDto>>($"{BaseUrl}/{callId}/SyncDetails", cancellationToken) ?? [];
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Data.Contains("StatusCode") && ex.Data["StatusCode"]?.ToString() == "404")
         {

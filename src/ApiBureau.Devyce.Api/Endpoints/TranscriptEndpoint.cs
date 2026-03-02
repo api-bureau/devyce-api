@@ -5,6 +5,8 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 /// </summary>
 public class TranscriptEndpoint : BaseEndpoint
 {
+    private const string BaseUrl = "/CallTranscriptions";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TranscriptEndpoint"/> class.
     /// </summary>
@@ -21,7 +23,7 @@ public class TranscriptEndpoint : BaseEndpoint
     {
         try
         {
-            return await HttpClient.GetAsync<CallTranscriptionDto>($"/CallTranscriptions/{callId}", cancellationToken);
+            return await HttpClient.GetAsync<CallTranscriptionDto>($"{BaseUrl}/{callId}", cancellationToken);
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Data.Contains("StatusCode") && ex.Data["StatusCode"]?.ToString() == "404")
         {

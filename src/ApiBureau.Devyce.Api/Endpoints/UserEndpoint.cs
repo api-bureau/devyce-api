@@ -5,6 +5,8 @@ namespace ApiBureau.Devyce.Api.Endpoints;
 /// </summary>
 public class UserEndpoint : BaseEndpoint
 {
+    private const string BaseUrl = "/Users";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UserEndpoint"/> class.
     /// </summary>
@@ -19,7 +21,7 @@ public class UserEndpoint : BaseEndpoint
     public async Task<List<UserDto>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await HttpClient.GetAsync<List<UserDto>>(
-            $"/Users",
+            BaseUrl,
             cancellationToken) ?? [];
     }
 }

@@ -24,4 +24,4 @@ var cliConfiguration = new CommandLineConfiguration(host.Services);
 var rootCommand = cliConfiguration.CreateRootCommand();
 
 var parseResult = rootCommand.Parse(args);
-return parseResult.Invoke();
+return await parseResult.InvokeAsync();

@@ -53,7 +53,7 @@ public class DataService
     /// <summary>
     /// Fetches and logs recent calls within the specified time range.
     /// </summary>
-    public async Task<List<CallDto>> FetchAndLogRecentCallsAsync(
+    public async Task<IReadOnlyList<CallDto>> FetchAndLogRecentCallsAsync(
         int lastMinutes = DefaultTimeRangeMinutes,
         OutputFormat format = OutputFormat.Text,
         CancellationToken token = default)
@@ -134,18 +134,18 @@ public class DataService
             crmDetails.Sum(d => d.Details.Count));
     }
 
-    private async Task<List<UserDto>> FetchUsersAsync(CancellationToken token)
+    private async Task<IReadOnlyList<UserDto>> FetchUsersAsync(CancellationToken token)
     {
         _logger.LogDebug("Fetching Devyce users...");
 
-        var users = await _client.Users.GetAsync(token);
+        var users = await _client.Users.GetAllAsync(token);
 
         _logger.LogDebug("Fetched {Count} users", users.Count);
 
         return users;
     }
 
-    private async Task<List<CallDto>> FetchCallsAsync(DateTime startDate, CancellationToken token)
+    private async Task<IReadOnlyList<CallDto>> FetchCallsAsync(DateTime startDate, CancellationToken token)
     {
         var callQuery = new CallQuery(startDate, DateTime.Now);
 
@@ -158,7 +158,7 @@ public class DataService
         return calls;
     }
 
-    private async Task<List<(string CallId, List<CrmSyncDetailsDto> Details)>> FetchCrmSyncDetailsAsync(List<CallDto> calls, CancellationToken token)
+    private async Task<List<(string CallId, List<CrmSyncDetailsDto> Details)>> FetchCrmSyncDetailsAsync(IReadOnlyList<CallDto> calls, CancellationToken token)
     {
         var crmDetailsList = new List<(string CallId, List<CrmSyncDetailsDto> Details)>();
 
@@ -166,7 +166,7 @@ public class DataService
 
         foreach (var call in calls)
         {
-            var crmSyncDetails = await _client.CrmSyncDetails.GetAsync(call.Id, token);
+            var crmSyncDetails = await _client.CrmSyncDetails.GetForCallAsync(call.Id, token);
 
             if (crmSyncDetails is null || crmSyncDetails.Count == 0)
                 continue;
@@ -200,7 +200,7 @@ public class DataService
 
         _logger.LogInformation("=== Transcript for Call {CallId} ===", callId);
 
-        var transcript = await _client.Transcripts.GetAsync(callId, token);
+        var transcript = await _client.Transcripts.GetForCallAsync(callId, token);
 
         _logger.LogInformation("{Transcript}", JsonSerializer.Serialize(transcript, _jsonOptions));
     }

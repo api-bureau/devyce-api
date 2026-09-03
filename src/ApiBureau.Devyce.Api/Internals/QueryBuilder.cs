@@ -5,7 +5,7 @@ namespace ApiBureau.Devyce.Api.Internals;
 
 internal static class QueryBuilder
 {
-    internal static string BuildCallQuery(CallQuery query)
+    internal static string BuildCallQuery(string resourcePath, CallQuery query)
     {
         var queryParams = new Dictionary<string, string?>();
         if (query.StartDateInclusive.HasValue)
@@ -33,6 +33,6 @@ internal static class QueryBuilder
             queryParams["continuationToken"] = query.ContinuationToken;
         }
 
-        return QueryHelpers.AddQueryString("/Calls", queryParams);
+        return QueryHelpers.AddQueryString(resourcePath, queryParams);
     }
 }

@@ -16,8 +16,6 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
 - Comprehensive logging with Serilog
 - .NET 10 support
 
----
-
 ## 📚 API Client Library
 
 ### Installation
@@ -55,12 +53,12 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
    var client = serviceProvider.GetRequiredService<IDevyceClient>();
 
    // Fetch users
-   var users = await client.Users.GetAsync();
+   var users = await client.Users.GetAllAsync();
    Console.WriteLine(JsonSerializer.Serialize(users));
 
    // Fetch recent calls
    var callQuery = new CallQuery(DateTime.Now.AddHours(-1), DateTime.Now);
-   var calls = await client.Calls.GetAsync(callQuery);
+   var calls = await client.Calls.GetPageAsync(callQuery);
 
    Console.WriteLine(JsonSerializer.Serialize(calls));
    ```
@@ -68,33 +66,28 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
 ### Available Endpoints
 
 - Users Endpoint
-  - Get all users: `await client.Users.GetAsync();`
+  - Get all users: `await client.Users.GetAllAsync();`
 - Calls Endpoint
   - Access call records and call history
   ```csharp
   // Get calls within a date range
   var query = new CallQuery(startDate, endDate);
-  var calls = await client.Calls.GetAsync(query);
+  var calls = await client.Calls.GetPageAsync(query);
   ```
 - Contacts Endpoint
   - Manage contact information.
   ```csharp
   // Get all contact IDs
-  var contactIds = await client.Contacts.GetContactIdsAsync(
-      organizationId, 
-      cancellationToken);
+  var contactIds = await client.Contacts.GetIdsAsync(cancellationToken);
   
   // Get specific contact details
-  var contact = await client.Contacts.GetContactAsync(
-      organizationId, 
-      contactId, 
-      cancellationToken);
+  var contact = await client.Contacts.GetByIdAsync(contactId, cancellationToken);
   ```
 - Transcripts Endpoint
   - Access call transcriptions (requires additional API permissions).
   ```csharp
   // Get call transcript
-  var transcript = await client.Transcripts.GetAsync(
+  var transcript = await client.Transcripts.GetForCallAsync(
       callId, 
       cancellationToken);
   ```
@@ -102,7 +95,7 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
   - Retrieve CRM synchronization information for calls.
   ```csharp
   // Get CRM sync details for a call
-  IList<CrmSyncDetailsDto> crmDetails = await client.CrmSyncDetails.GetAsync(
+  IReadOnlyList<CrmSyncDetailsDto> crmDetails = await client.CrmSyncDetails.GetForCallAsync(
       callId, 
       cancellationToken);
   ```

@@ -5,10 +5,10 @@ namespace ApiBureau.Devyce.Api;
 /// </summary>
 /// <remarks>
 /// This class initializes all endpoint instances using the provided HTTP client connection,
-/// making them available as properties for consuming code. Each endpoint is lazily instantiated
-/// during construction and cached for reuse.
+/// making them available as properties for consuming code. Each endpoint is instantiated during
+/// construction and cached for reuse.
 /// </remarks>
-public class DevyceClient : IDevyceClient
+public sealed class DevyceClient : IDevyceClient
 {
     /// <summary>
     /// Gets the endpoint for call-related operations and call history retrieval.
@@ -42,13 +42,15 @@ public class DevyceClient : IDevyceClient
     /// This constructor instantiates all endpoint objects and caches them for the lifetime of the client instance.
     /// All endpoints share the same HTTP client connection for consistent authentication and configuration.
     /// </remarks>
-    /// <param name="apiConnection">The configured Devyce HTTP client connection used by all endpoints.</param>
-    public DevyceClient(DevyceHttpClient apiConnection)
+    /// <param name="httpClient">The configured Devyce HTTP client connection used by all endpoints.</param>
+    public DevyceClient(DevyceHttpClient httpClient)
     {
-        Calls = new CallEndpoint(apiConnection);
-        Contacts = new ContactEndpoint(apiConnection);
-        Users = new UserEndpoint(apiConnection);
-        Transcripts = new TranscriptEndpoint(apiConnection);
-        CrmSyncDetails = new CrmSyncDetailsEndpoint(apiConnection);
+        ArgumentNullException.ThrowIfNull(httpClient);
+
+        Calls = new CallEndpoint(httpClient);
+        Contacts = new ContactEndpoint(httpClient);
+        Users = new UserEndpoint(httpClient);
+        Transcripts = new TranscriptEndpoint(httpClient);
+        CrmSyncDetails = new CrmSyncDetailsEndpoint(httpClient);
     }
 }

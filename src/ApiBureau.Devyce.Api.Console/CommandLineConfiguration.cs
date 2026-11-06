@@ -20,13 +20,17 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
         var callsCommand = CreateCallsCommand();
         var crmDetailsCommand = CreateCrmDetailsCommand();
         var transcriptsCommand = CreateTranscriptsCommand();
+        var meetingsCommand = CreateMeetingsCommand();
+        var meetingCommand = CreateMeetingCommand();
 
-        return new RootCommand("Devyce API Console - Interact with Devyce API to manage users, calls, and CRM data")
+        return new RootCommand("Devyce API Console - Interact with Devyce API to manage users, calls, meetings, and CRM data")
         {
             usersCommand,
             callsCommand,
             crmDetailsCommand,
-            transcriptsCommand
+            transcriptsCommand,
+            meetingsCommand,
+            meetingCommand
         };
     }
 
@@ -123,6 +127,55 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
         return command;
     }
 
+    private Command CreateMeetingsCommand()
+    {
+        var command = new Command("meetings", "List Devyce meetings within a specified time range");
+
+        var formatOption = CreateFormatOption();
+        var timeRangeOption = CreateTimeRangeOption(1440, "Number of minutes to look back for meetings (default: 1440)");
+
+        command.Options.Add(formatOption);
+        command.Options.Add(timeRangeOption);
+
+        command.SetAction(async (parseResult, cancellationToken) =>
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
+
+            var outputFormat = parseResult.GetValue(formatOption);
+            var lastMinutes = parseResult.GetValue(timeRangeOption);
+
+            await dataService.FetchAndLogRecentMeetingsAsync(lastMinutes, outputFormat, cancellationToken);
+        });
+
+        return command;
+    }
+
+    private Command CreateMeetingCommand()
+    {
+        var command = new Command("meeting", "Fetch and display a single meeting with its participants and transcript");
+
+        var meetingIdOption = new Option<string>("--meeting-id", "-i")
+        {
+            Description = "The meeting ID to retrieve (use 'meetings' command to list available IDs)",
+            Arity = ArgumentArity.ExactlyOne
+        };
+
+        command.Options.Add(meetingIdOption);
+
+        command.SetAction(async (parseResult, cancellationToken) =>
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dataService = scope.ServiceProvider.GetRequiredService<DataService>();
+
+            var meetingId = parseResult.GetValue(meetingIdOption);
+
+            await dataService.FetchAndLogMeetingAsync(meetingId, cancellationToken);
+        });
+
+        return command;
+    }
+
     private static Option<OutputFormat> CreateFormatOption()
     {
         return new Option<OutputFormat>("--format", "-f")
@@ -132,12 +185,13 @@ public class CommandLineConfiguration(IServiceProvider serviceProvider)
         };
     }
 
-    private static Option<int> CreateTimeRangeOption()
+    private static Option<int> CreateTimeRangeOption(int defaultMinutes = 120,
+        string description = "Number of minutes to look back for calls (default: 120)")
     {
         return new Option<int>("--last-minutes", "-m")
         {
-            Description = "Number of minutes to look back for calls (default: 120)",
-            DefaultValueFactory = _ => 120
+            Description = description,
+            DefaultValueFactory = _ => defaultMinutes
         };
     }
 }

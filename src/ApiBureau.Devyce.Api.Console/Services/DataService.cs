@@ -204,4 +204,69 @@ public class DataService
 
         _logger.LogInformation("{Transcript}", JsonSerializer.Serialize(transcript, _jsonOptions));
     }
+
+    /// <summary>
+    /// Fetches and logs meetings within the specified time range.
+    /// </summary>
+    public async Task FetchAndLogRecentMeetingsAsync(
+        int lastMinutes = DefaultTimeRangeMinutes,
+        OutputFormat format = OutputFormat.Text,
+        CancellationToken token = default)
+    {
+        var startDate = DateTime.Now.AddMinutes(-lastMinutes);
+        var meetingQuery = new MeetingQuery(startDate, DateTime.Now);
+
+        _logger.LogDebug("Fetching Devyce meetings from {StartDate}...", startDate);
+
+        var meetings = await _client.Meetings.GetAllAsync(meetingQuery, token);
+
+        _logger.LogInformation("=== Devyce Meetings (Last {Minutes} minutes) ===", lastMinutes);
+
+        if (format == OutputFormat.Json)
+        {
+            _logger.LogInformation("{Data}", JsonSerializer.Serialize(meetings, _jsonOptions));
+        }
+        else
+        {
+            foreach (var meeting in meetings)
+            {
+                _logger.LogInformation("{StartTime:yyyy-MM-dd HH:mm:ss} | Duration: {Duration} | {Source} | {Subject} | Participants: {Participants} | Transcript cues: {Cues} | Id: {MeetingId}",
+                    meeting.StartTimeUtc,
+                    meeting.Duration,
+                    meeting.Source,
+                    meeting.Subject,
+                    meeting.Participants.Count,
+                    meeting.Transcript.Count,
+                    meeting.Id);
+            }
+        }
+
+        _logger.LogInformation("Total meetings: {Count}", meetings.Count);
+    }
+
+    /// <summary>
+    /// Fetches and logs a single meeting with its participants and transcript.
+    /// </summary>
+    public async Task FetchAndLogMeetingAsync(string? meetingId, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(meetingId))
+        {
+            _logger.LogWarning("No meeting ID provided for meeting fetch");
+
+            return;
+        }
+
+        _logger.LogInformation("=== Meeting {MeetingId} ===", meetingId);
+
+        var meeting = await _client.Meetings.GetByIdAsync(meetingId, token);
+
+        if (meeting is null)
+        {
+            _logger.LogWarning("Meeting {MeetingId} not found", meetingId);
+
+            return;
+        }
+
+        _logger.LogInformation("{Meeting}", JsonSerializer.Serialize(meeting, _jsonOptions));
+    }
 }

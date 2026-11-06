@@ -5,7 +5,7 @@ namespace ApiBureau.Devyce.Api.Interfaces;
 /// </summary>
 /// <remarks>
 /// This interface provides a consolidated access point to all Devyce API operations,
-/// organizing endpoints by resource type (calls, users, contacts, transcripts, and CRM sync details).
+/// organizing endpoints by resource type (calls, users, contacts, transcripts, CRM sync details and meetings).
 /// Use the respective endpoint properties to perform operations on each resource.
 /// </remarks>
 public interface IDevyceClient
@@ -34,4 +34,9 @@ public interface IDevyceClient
     /// Gets the endpoint for CRM synchronization details operations.
     /// </summary>
     CrmSyncDetailsEndpoint CrmSyncDetails { get; }
+
+    /// <summary>
+    /// Gets the endpoint for meeting operations.
+    /// </summary>
+    MeetingEndpoint Meetings { get; }
 }

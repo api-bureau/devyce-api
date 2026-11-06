@@ -10,7 +10,7 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
 ## 🚀 Features
 
 - Type-safe C# client with full async/await support
-- Organized endpoint groups (Calls, Users, Contacts, Transcripts, CRM Sync)
+- Organized endpoint groups (Calls, Users, Contacts, Transcripts, CRM Sync, Meetings)
 - CLI tool with multiple output formats (text and JSON)
 - Built-in authentication handling
 - Comprehensive logging with Serilog
@@ -98,6 +98,19 @@ A lightweight C# client library and CLI tool for rapid prototyping and onboardin
   IReadOnlyList<CrmSyncDetailsDto> crmDetails = await client.CrmSyncDetails.GetForCallAsync(
       callId, 
       cancellationToken);
+  ```
+- Meetings Endpoint
+  - Access meetings with their participants (and matched CRM contacts), summary and transcript.
+  ```csharp
+  // Get all meetings within a date range (follows continuation tokens)
+  var query = new MeetingQuery(startDate, endDate);
+  var meetings = await client.Meetings.GetAllAsync(query, cancellationToken);
+
+  // Get one page of meetings and the token for the next page
+  var page = await client.Meetings.GetPageAsync(query with { Limit = 50 }, cancellationToken);
+
+  // Get a specific meeting; null if not found
+  var meeting = await client.Meetings.GetByIdAsync(meetingId, cancellationToken);
   ```
 
 ## 🖥️ Command-Line Interface (CLI)
@@ -290,6 +303,54 @@ dotnet run -- transcripts -i <copied-call-id>
   "confidence": 0.95,
   "language": "en-GB"
 }
+```
+
+#### 5. List Meetings
+
+Display meetings within a specified time range.
+
+**Syntax:**
+```bash
+dotnet run -- meetings [options]
+```
+
+**Options:**
+- `--format`, `-f` - Output format (`Text` or `Json`)
+- `--last-minutes`, `-m` - Number of minutes to look back (default: `1440`)
+
+**Examples:**
+```bash
+# List meetings from the last 24 hours (default)
+dotnet run -- meetings
+
+# List meetings from the last 7 days in JSON format (includes participants and transcripts)
+dotnet run -- meetings -m 10080 -f json
+```
+
+**Sample Output (Text):**
+```
+=== Devyce Meetings (Last 1440 minutes) ===
+2024-01-15 10:00:00 | Duration: 1800 | Teams | Weekly catch-up | Participants: 3 | Transcript cues: 412 | Id: meeting-abc123
+Total meetings: 1
+```
+
+#### 6. Get Meeting
+
+Fetch and display one meeting with its participants, CRM contacts, summary and transcript (JSON).
+
+**Syntax:**
+```bash
+dotnet run -- meeting --meeting-id <meeting-id>
+```
+
+**Options:**
+- `--meeting-id`, `-i` - **Required**. The meeting ID to retrieve
+
+**Examples:**
+```bash
+dotnet run -- meetings -m 10080
+# Copy a meeting ID from the output, then:
+dotnet run -- meeting -i <copied-meeting-id>
 ```
 
 ### 🎯 Common Usage Scenarios

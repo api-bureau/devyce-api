@@ -36,6 +36,11 @@ public sealed class DevyceClient : IDevyceClient
     public CrmSyncDetailsEndpoint CrmSyncDetails { get; }
 
     /// <summary>
+    /// Gets the endpoint for meeting operations.
+    /// </summary>
+    public MeetingEndpoint Meetings { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DevyceClient"/> class.
     /// </summary>
     /// <remarks>
@@ -52,5 +57,6 @@ public sealed class DevyceClient : IDevyceClient
         Users = new UserEndpoint(httpClient);
         Transcripts = new TranscriptEndpoint(httpClient);
         CrmSyncDetails = new CrmSyncDetailsEndpoint(httpClient);
+        Meetings = new MeetingEndpoint(httpClient);
     }
 }

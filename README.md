@@ -146,6 +146,11 @@ The CLI tool provides an interactive way to explore the Devyce API without writi
    dotnet user-secrets set "DevyceSettings:OrganizationId" "your-org-id"
    ```
 
+   **Or load them from Azure Key Vault (optional):** set only the vault URI on your computer, and keep the settings as vault secrets (see [Azure Key Vault](#azure-key-vault-optional)):
+   ```bash
+   dotnet user-secrets set "KeyVault:VaultUri" "https://your-vault.vault.azure.net/"
+   ```
+
 3. **Build and run**:
    ```bash
    dotnet build
@@ -402,6 +407,20 @@ dotnet run -- crm-details --last-minutes 1440 --format json
 | `BaseUrl` | The Devyce API base URL | Yes |
 | `ApiKey` | Your Devyce API key | Yes |
 | `OrganizationId` | Your organization identifier | Yes |
+
+### Azure Key Vault (optional)
+
+The CLI loads its settings from Azure Key Vault when `KeyVault:VaultUri` is set; otherwise it uses `appsettings.json`, user secrets and environment variables only. Vault secrets override those values.
+
+1. Set the vault URI on your computer, never in a committed file:
+   ```bash
+   dotnet user-secrets set "KeyVault:VaultUri" "https://your-vault.vault.azure.net/"
+   ```
+   Or use the environment variable `KeyVault__VaultUri` (for example when not running in the `Development` environment, where user secrets are not loaded).
+2. Name the vault secrets with `--` in place of `:`: `DevyceSettings--BaseUrl`, `DevyceSettings--ApiKey` and `DevyceSettings--OrganizationId`.
+3. Sign in with an account that can read the vault's secrets (for example the Key Vault Secrets User role). `DefaultAzureCredential` is used, so Visual Studio, Visual Studio Code, `az login` or the Azure environment variables all work.
+
+The vault's secrets are all loaded, so use a vault dedicated to Devyce.
 
 ### Logging Configuration
 
